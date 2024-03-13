@@ -1,51 +1,41 @@
 import express from 'express';
-import log from '@ajar/marker';
+import morgan from 'morgan';
+import bodyParser from 'body-parser';
 
 const { PORT, HOST } = process.env;
+const app = express();
 
-// console.log(process.env);
+app.use(express.json());
+app.use(morgan('dev'));
+app.use(bodyParser.urlencoded({extended: false}));
 
-const app = express()
-
-
-app.get('/',  (req, res) => {
-    res.status(200).send('Hello Express!')
-})
-
-app.get('/users', (req, res,next) => {
-    res.status(200).send('Get all Users')
-})
-
-
-// '/search?food=burger&town=ashdod'
-
-
-app.listen(PORT, HOST,  ()=> {
-    log.magenta(`🌎  listening on`,`http://${HOST}:${PORT}`);
+app.get('/movies', (req,res) => {
+    const {name, year, genre} = req.query;
+    res.send('the movie ' + req.query.name + ' went out on the year of ' + req.query.year + ' the genre is ' +req.query.genre);
 });
 
+app.get('/movies/movie/:isOut', (req, res) => {
+    const {name} = req.query;
+    res.status(200).send(name + ' is ' + req.params.isOut);
+});
 
-//------------------------------------------
-//         Express Echo Server
-//------------------------------------------
-/*
-### Challenge instructions
+app.get('/', (req, res) => {
+    let greeting = "WooHoo";
+    let date = "March 13th, 2024";
+    const info = `<h1>${greeting}</h1>
+    <p>WELCOME all movie FANS</p>
+    <p>${date}</p>`
+    res.status(200).send(info);
+});
 
-1. Install the `morgan` 3rd party middleware  
-use the middleware in your app:  
-         `app.use( morgan('dev') );`
+app.post('/movies/update', (req,res) =>{
+    res.status(200).json('the movie ' + req.body.name + ' has been updated')
+});
 
-2.  Define more routing functions that use
-    - `req.query` - access the querystring part of the request url
-    - `req.params` - access dynamic parts of the url
-    - `req.body` - access the request body of a **POST** request
-        
-        in each routing function you want to pass some values to the server from the client
-        and echo those back in the server response
+app.listen(PORT, HOST,  ()=> {
+    console.log(`listening on`,`http://${HOST}:${PORT}`);
+});
 
-3. return api json response
-4. return html markup response
-5. return 404 status with a custom response to unsupported routes
-
-
-*/
+app.use((req, res, next) => {
+    res.status(404).send('Error 404 ' + req.url + ' not found');
+});
